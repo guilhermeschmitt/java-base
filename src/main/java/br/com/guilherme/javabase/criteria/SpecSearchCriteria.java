@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.yaml.snakeyaml.util.EnumUtils;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -23,7 +21,7 @@ public class SpecSearchCriteria {
     public SpecSearchCriteria(final String key, final String[] operation, final List<String> value) {
         this.key = key;
         this.value = value;
-        this.operation = EnumUtils.getEnumFromValue(operation[0], SearchOperation.class);
+        this.operation = SearchOperation.fromSymbol(operation[0]);
     }
 
     public SpecSearchCriteria(final String key, final SearchOperation operation, final @NotBlank String value) {

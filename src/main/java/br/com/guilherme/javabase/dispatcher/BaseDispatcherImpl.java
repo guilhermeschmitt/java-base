@@ -40,12 +40,12 @@ public abstract class BaseDispatcherImpl<D extends BaseDto<I>, U extends BaseDto
     private Supplier<BooleanExpression> currentFilter = () -> null;
     private Supplier<Map<String, Object>> paramsController = () -> null;
 
-    public BaseDispatcherImpl(final BaseService<E, I> service, final BaseConverter<D, U, P, E, I, B> converter,
+    public BaseDispatcherImpl(final BaseService<E, I> service, final BaseConverterDto<D, U, P, E, I, B> converter,
             final EntityPath<E> entityPath) {
-        this(service, converter, entityPath);
+        this(service, converter, entityPath, null);
     }
 
-    public BaseDispatcherImpl(final BaseService<E, I> service, final BaseConverter<D, U, P, E, I, B> converter,
+    public BaseDispatcherImpl(final BaseService<E, I> service, final BaseConverterDto<D, U, P, E, I, B> converter,
             final EntityPath<E> entityPath, final DtoValidator<U, P> validator) {
         this.service = service;
         this.validator = validator;

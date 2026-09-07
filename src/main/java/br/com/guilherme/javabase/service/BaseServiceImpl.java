@@ -1,26 +1,34 @@
 package br.com.guilherme.javabase.service;
 
 import java.io.Serializable;
-import java.lang.foreign.Linker.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.util.Assert;
+
+import com.querydsl.core.types.Predicate;
 
 import br.com.guilherme.javabase.domain.BaseEntityInterface;
+import br.com.guilherme.javabase.exception.BadRequestException;
+import br.com.guilherme.javabase.exception.EntityNotFound;
+import br.com.guilherme.javabase.exception.ErrorSeverity;
+import br.com.guilherme.javabase.exception.EnumErrorMessage;
+import br.com.guilherme.javabase.exception.ExceptionDatabaseImpl;
+import br.com.guilherme.javabase.exception.UnauthorizedException;
 import br.com.guilherme.javabase.repository.BaseRepository;
+import br.com.guilherme.javabase.util.GenericClassUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+@Transactional(rollbackFor = Exception.class)
 public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extends Serializable>
         implements BaseService<T, I> {
 
@@ -163,10 +171,10 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Override 
-    public List<T> deleteAndCommitParalelTransaction(final Iterable<T> entities) {
+    @Override
+    public void deleteAndCommitParalelTransaction(final Iterable<T> entities) {
         Assert.notNull(entities, "Entities must not be null");
-        repository.deleteInBatch(entities);
+        repository.deleteAllInBatch(entities);
     }
 
     @Override
@@ -212,7 +220,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
     }
 
     public EntityNotFound notFoundById(final I id) {
-        return new EntityNotFound(ErrorSeverity.ERRO, EnumErrorMessage.ERR_RECORD_NOT_EXIST, generateDescription(), id);
+        return new EntityNotFound(ErrorSeverity.ERROR, EnumErrorMessage.ERR_RECORD_NOT_EXIST, generateDescription(), id);
     }
 
     public String generateDescription() {
@@ -220,7 +228,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
     }
 
     protected T newInstanceEntity() {
-        return new GenericClassUtil<T>(getClass()).getNewInstance(0);
+        return new GenericClassUtil<T>(getClass()).getNewInstance("T");
     }
 
     protected T afterSave(final T ent) {

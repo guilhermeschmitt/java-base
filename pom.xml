@@ -104,6 +104,11 @@
                             <version>${querydsl.version}</version>
                             <classifier>jakarta</classifier>
                         </path>
+                        <path>
+                            <groupId>jakarta.persistence</groupId>
+                            <artifactId>jakarta.persistence-api</artifactId>
+                            <version>3.2.0</version>
+                        </path>
                     </annotationProcessorPaths>
                     <annotationProcessors>
                         <annotationProcessor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</annotationProcessor>

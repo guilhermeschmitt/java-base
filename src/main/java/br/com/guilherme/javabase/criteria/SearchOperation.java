@@ -16,28 +16,35 @@ public enum SearchOperation implements BaseEnum<String> {
     STARTS_WITH("=sw="),
     ENDS_WITH("=ew=");
 
-    private String symbol;
-    private boolean multiValue;
+    private final String symbol;
+    private final boolean multiValue;
 
     SearchOperation(final String symbol) {
-        multiValue = false;
+        this(symbol, false);
     }
 
     SearchOperation(final String symbol, final boolean multiValue) {
+        this.symbol = symbol;
+        this.multiValue = multiValue;
     }
 
     public String getSymbol() {
         return symbol;
     }
 
-    public boolean isMultiValue(){ 
+    public boolean isMultiValue(){
         return multiValue;
     }
 
-    @Override 
+    @Override
     public String getValue() {
         return getSymbol();
     }
 
-    
+    public static SearchOperation fromSymbol(final String symbol) {
+        for (final SearchOperation operation : values())
+            if (operation.symbol.equals(symbol))
+                return operation;
+        throw new IllegalArgumentException("Operador RSQL desconhecido: " + symbol);
+    }
 }

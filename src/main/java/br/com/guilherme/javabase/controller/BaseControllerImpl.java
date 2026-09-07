@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,11 +30,12 @@ import br.com.guilherme.javabase.domain.BaseEntityInterface;
 import br.com.guilherme.javabase.dto.BaseDto;
 import br.com.guilherme.javabase.dto.BaseDtoBasic;
 import br.com.guilherme.javabase.service.BaseService;
+import br.com.guilherme.javabase.util.HttpServletRequestUtils;
+import br.com.guilherme.javabase.util.ResponseUtil;
 import br.com.guilherme.javabase.validator.DtoValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
-@Transactional(rollbackFor = Exception.class)
 public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto<I>, P extends BaseDtoBasic, E extends BaseEntityInterface<I>, I extends Serializable, B extends BaseDto<I>>
         implements BaseController<D, U, P, I, B> {
 
@@ -53,7 +52,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
     public BaseControllerImpl(final BaseService<E, I> bsService,
             final BaseConverterDto<D, U, P, E, I, B> dBaseConverterDtoImpl, final EntityPath<E> entityPath,
             final DtoValidator<U, P> validator) {
-        dispatcher = new BaseControllerDispatcherImpl(bsService, dBaseConverterDtoImpl, entityPath, validator);
+        dispatcher = new BaseControllerDispatcherImpl<>(bsService, dBaseConverterDtoImpl, entityPath, validator);
     }
 
     public BaseControllerImpl(final BaseControllerDispatcherImpl<D, U, P, E, I, B> dispatcher) {

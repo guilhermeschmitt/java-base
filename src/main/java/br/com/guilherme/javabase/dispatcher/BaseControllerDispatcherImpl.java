@@ -6,11 +6,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 
 import com.querydsl.core.types.EntityPath;
 
@@ -18,7 +18,11 @@ import br.com.guilherme.javabase.converter.BaseConverterDto;
 import br.com.guilherme.javabase.domain.BaseEntityInterface;
 import br.com.guilherme.javabase.dto.BaseDto;
 import br.com.guilherme.javabase.dto.BaseDtoBasic;
+import br.com.guilherme.javabase.exception.EnumErrorMessage;
+import br.com.guilherme.javabase.exception.ErrorSeverity;
+import br.com.guilherme.javabase.exception.UpdateError;
 import br.com.guilherme.javabase.service.BaseService;
+import br.com.guilherme.javabase.util.ResponseUtil;
 import br.com.guilherme.javabase.validator.DtoValidator;
 
 public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDto<I>, P extends BaseDtoBasic, E extends BaseEntityInterface<I>, I extends Serializable, B extends BaseDto<I>>
@@ -58,19 +62,19 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
 
     @Override
     public ResponseEntity<Page<B>> getObjectList(final Pageable page, final String search, final List<I> listID) {
-        if (!CollectinsUtils.isEmpty(listID))
-            return ResponseUtil.processResponse(new PageImpl<>(converter.toListDto(service.getList(listID))));
+        if (!CollectionUtils.isEmpty(listID))
+            return ResponseUtil.processResponse(new PageImpl<>(converter.toListDto(service.getByList(listID))));
         return getObjectList(page, search);
     }
 
     @Override
     public ResponseEntity<D> postObject(final P dto, final Boolean response, final Boolean responseID) {
         return executeMethod(() -> {
-            if(validator != null)
+            if (validator != null)
                 validator.validateCreate(dto);
 
             final Function<E, Optional<D>> convertFunction = getConvertFunction(response, responseID);
-            final Optional<D> optD = processPost(dto).map(convertFunction::apply).filter(Optional::isPresent).map(Optional::get);~
+            final Optional<D> optD = processPost(dto).map(convertFunction::apply).filter(Optional::isPresent).map(Optional::get);
 
             return ResponseUtil.processResponsePost(optD);
         });
@@ -78,21 +82,23 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
 
     @Override
     public ResponseEntity<D> updateObject(final I id, final U dto, final Boolean response, final Boolean responseID) {
-        if(Objects.isNull(id))
+        if (Objects.isNull(id))
             throw new UpdateError(ErrorSeverity.FATAL, EnumErrorMessage.ERR_ID_NOT_INFORMED);
-        Preconditions.checkArgument(id.equais(dto.getId()), EnumErrorMessage.ERR_NOT_ALLOWED, "ID different from the parameter");
+        if (!id.equals(dto.getId()))
+            throw new UpdateError(ErrorSeverity.FATAL, EnumErrorMessage.ERR_NOT_ALLOWED);
 
         final E ent = service.getOne(id);
 
-        if(!getValidSelectedObject().test(ent))
+        if (!getValidSelectedObject().test(ent))
             return ResponseUtil.noContent();
 
-        if(validator != null)
+        if (validator != null)
             validator.validateUpdate(dto);
 
         final Function<E, Optional<D>> convertFunction = getConvertFunction(response, responseID);
 
-        return executeMethod(() -> ResponseUtil.processResponsePut(converter.fromDtoU(dto, ent).map(this.executeEventsUpdate).map(convertFunction::apply).filter(Optional::isPresent).map(Optional::get)) 
+        return executeMethod(() -> ResponseUtil.processResponsePut(converter.fromDtoU(dto, ent)
+                .map(this::executeEventUpdate).map(convertFunction::apply).filter(Optional::isPresent).map(Optional::get)));
     }
 
     @Override
@@ -117,7 +123,7 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
         E newEnt = null;
 
         if (newEntOptional.isPresent())
-            newEnt = executeEventsInsert(newEntOptional.get());
+            newEnt = executeEventInsert(newEntOptional.get());
         return Optional.ofNullable(newEnt);
     }
 

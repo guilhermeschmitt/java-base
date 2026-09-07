@@ -5,9 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.coyote.BadRequestException;
-import org.springframework.boot.autoconfigure.task.TaskExecutionProperties.Simple;
-
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
@@ -32,6 +29,10 @@ import cz.jirutka.rsql.parser.ast.LogicalNode;
 import cz.jirutka.rsql.parser.ast.LogicalOperator;
 import cz.jirutka.rsql.parser.ast.Node;
 
+import br.com.guilherme.javabase.exception.BadRequestException;
+import br.com.guilherme.javabase.exception.EnumErrorMessage;
+import br.com.guilherme.javabase.exception.ErrorSeverity;
+
 public class BooleanBuilderParse {
 
     private static RSQLParser parser;
@@ -53,7 +54,7 @@ public class BooleanBuilderParse {
             final Node node = parseToNode(search);
             return processNode(entityPath, node);
         } catch (final RSQLParserException e) {
-            throw new BadRequestException(ErrorSeverity.ERROR, "", e.getMessage());
+            throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_INVALID_FILTER, e.getMessage());
         }
     }
 
@@ -156,14 +157,15 @@ public class BooleanBuilderParse {
                 return processFilter((SimpleExpression<?>) xField, item.getOperation(), item.getValue());
             return null;
         } catch (final NoSuchFieldException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "", String.format("Field %s not found", e.getMessage()));
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FIELD_NOT_FOUND, e.getMessage());
         } catch (final IllegalAccessException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "", String.format("Illegal access: %s", e.getMessage()));
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
+                    String.format("Illegal access: %s", e.getMessage()));
         } catch (final IllegalArgumentException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "",
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
                     String.format("Illegal argument: %s", e.getMessage()));
         } catch (final SecurityException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "",
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
                     String.format("Security exception: %s", e.getMessage()));
         }
     }
@@ -191,14 +193,15 @@ public class BooleanBuilderParse {
                 return processFilter((SimpleExpression<?>) xField, item.getOperation(), item.getValue());
             return null;
         } catch (final NoSuchFieldException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "", String.format("Field %s not found", e.getMessage()));
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FIELD_NOT_FOUND, e.getMessage());
         } catch (final IllegalAccessException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "", String.format("Illegal access: %s", e.getMessage()));
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
+                    String.format("Illegal access: %s", e.getMessage()));
         } catch (final IllegalArgumentException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "",
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
                     String.format("Illegal argument: %s", e.getMessage()));
         } catch (final SecurityException e) {
-            throw new BadRequestException(ErrorSeverity.FATAL, "",
+            throw new BadRequestException(ErrorSeverity.FATAL, EnumErrorMessage.ERR_FILTER_PROCESSING_FAILED,
                     String.format("Security exception: %s", e.getMessage()));
         }
     }
@@ -256,21 +259,20 @@ public class BooleanBuilderParse {
     }
 
     private static BooleanExpression processFilter(final SimpleExpression<?>  expression, final SearchOperation type, final List<String> list) {
-        //FROM PROCESS FILTER
         if(expression instanceof StringPath)
-            return string((StringPath) expression, type, list);
+            return ProcessFilter.string((StringPath) expression, type, list);
         else if(expression instanceof NumberExpression)
-            return number((NumberExpression<?>) expression, type, list);
+            return ProcessFilter.number((NumberExpression<?>) expression, type, list);
         else if(expression instanceof BooleanPath)
-            return bool((BooleanPath) expression, type, list);
+            return ProcessFilter.bool((BooleanPath) expression, type, list);
         else if(expression instanceof EnumPath)
-            return enums((EnumPath<?>) expression, type, list);
+            return ProcessFilter.enums((EnumPath<?>) expression, type, list);
         else if(expression instanceof DatePath)
-            return date((DatePath<? super Comparable<?>>) expression, type, list);
+            return ProcessFilter.date((DatePath<? super Comparable<?>>) expression, type, list);
         else if(expression instanceof TimePath)
-            return time((TimePath<? super Comparable<?>>) expression, type, list);
+            return ProcessFilter.time((TimePath<? super Comparable<?>>) expression, type, list);
         else if(expression instanceof DateTimeExpression)
-            return dateTime((DateTimeExpression<? super Comparable<?>>) expression, type, list);
+            return ProcessFilter.dateTime((DateTimeExpression<? super Comparable<?>>) expression, type, list);
         return null;
     }
 }

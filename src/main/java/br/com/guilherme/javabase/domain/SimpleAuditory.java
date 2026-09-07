@@ -3,6 +3,7 @@ package br.com.guilherme.javabase.domain;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import br.com.guilherme.javabase.util.SecurityUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;

@@ -1,21 +1,24 @@
 package br.com.guilherme.javabase.converter;
 
 import java.io.Serializable;
-import java.lang.foreign.Linker.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import br.com.guilherme.javabase.domain.BaseEntityInterface;
 import br.com.guilherme.javabase.dto.BaseDto;
 import br.com.guilherme.javabase.dto.BaseDtoBasic;
+import br.com.guilherme.javabase.exception.BadRequestException;
+import br.com.guilherme.javabase.exception.EnumErrorMessage;
+import br.com.guilherme.javabase.exception.ErrorSeverity;
 import br.com.guilherme.javabase.service.BaseService;
+import br.com.guilherme.javabase.util.ConverterUtils;
+import br.com.guilherme.javabase.util.GenericClassUtil;
 
 public abstract class BaseConverterDtoImpl<D extends BaseDto<I>, U extends BaseDto<I>, P extends BaseDtoBasic, E extends BaseEntityInterface<I>, S extends BaseService<E, I>, I extends Serializable, B extends BaseDto<I>>
         implements BaseConverterDto<D, U, P, E, I, B> {
@@ -72,7 +75,8 @@ public abstract class BaseConverterDtoImpl<D extends BaseDto<I>, U extends BaseD
     @Override 
     public Optional<E> fromDtoP(final P dto, final Optional<I> id) {
         if(id.isPresent() && service.existsById(id.get()))
-            throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_RECORD_DOES_NOT_ALLOW, " a duplicate ID", id);
+            throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_RECORD_DOES_NOT_ALLOW,
+                    "ID " + id.get() + " ja existe");
         else
             return mapDtoToEntityForInsert(dto, getNewInstanceE());
     }
@@ -88,15 +92,15 @@ public abstract class BaseConverterDtoImpl<D extends BaseDto<I>, U extends BaseD
     }
  
     protected B newInstanceBasicData() {
-        return new GenericClassUtil<B>(getClass()).getNewInstance(6);
+        return new GenericClassUtil<B>(getClass()).getNewInstance("B");
     }
 
     protected E getNewInstanceE() {
-        return new GenericClassUtil<E>(getClass()).getNewInstance(3);
+        return new GenericClassUtil<E>(getClass()).getNewInstance("E");
     }
 
     protected D getNewInstanceD() {
-        return new GenericClassUtil<D>(getClass()).getNewInstance(0);
+        return new GenericClassUtil<D>(getClass()).getNewInstance("D");
     }
     
     protected void setDtoDefaultValues(final BaseDto<I> dto, final E ent) {
@@ -107,7 +111,7 @@ public abstract class BaseConverterDtoImpl<D extends BaseDto<I>, U extends BaseD
     protected final <T> T getParamController(final String key) {
         if(!Objects.isNull(this.threadParams.get()) && this.threadParams.get().containsKey(key))
             return (T) this.threadParams.get().get(key);
-        throw new BadRequestException().of(ErrorSeverity.ERROR, EnumErrorMessage.ERR_RECORD_DOES_NOT_ALLOW, String.format(" %s parameter is blank ", key));
+        throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_PARAMETER_BLANK, key);
     }
 
     protected boolean isInvalid(Object... values) {
