@@ -55,7 +55,7 @@ public abstract class SimpleAuditory<I extends Serializable> implements BaseEnti
 
     @Override
     public void auditUpdate() {
-        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
 
         Long userId;
 

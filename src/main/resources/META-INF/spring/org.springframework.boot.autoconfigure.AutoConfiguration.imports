@@ -1,2 +1,3 @@
 br.com.guilherme.javabase.config.JacksonAutoConfiguration
 br.com.guilherme.javabase.config.WebExceptionHandlingAutoConfiguration
+br.com.guilherme.javabase.config.ExceptionDatabaseAutoConfiguration

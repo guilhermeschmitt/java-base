@@ -202,6 +202,11 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return repository.findAll(page);
     }
 
+    @Override
+    public List<T> findAll() {
+        return repository.findAll();
+    }
+
     @Override 
     public List<T> findByPredicate(final Predicate predicate) {
         if(predicate == null)

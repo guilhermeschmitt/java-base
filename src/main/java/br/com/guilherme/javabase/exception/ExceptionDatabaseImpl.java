@@ -2,13 +2,18 @@ package br.com.guilherme.javabase.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.stereotype.Component;
+
+import br.com.guilherme.javabase.config.ExceptionDatabaseAutoConfiguration;
 
 /**
  * Traduz excecoes lancadas pela camada de persistencia em excecoes de negocio conhecidas,
  * para que o {@link GlobalExceptionHandler} sempre devolva uma resposta consistente.
+ *
+ * <p>Registrada como bean via {@link ExceptionDatabaseAutoConfiguration}, e nao com
+ * {@code @Component}: o component-scan padrao de uma aplicacao consumidora cobre apenas o
+ * pacote dela mesma (ex.: {@code br.com.guilherme.javatest}), nunca alcancando
+ * {@code br.com.guilherme.javabase} por conta propria.
  */
-@Component
 public class ExceptionDatabaseImpl {
 
     public RuntimeException translateMessageDatabase(final Exception e) {
