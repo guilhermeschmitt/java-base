@@ -187,7 +187,8 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
 
         try {
             removeChildRecords(t);
-            repository.deleteById(id);
+            t.setActive(Boolean.FALSE);
+            repository.save(t);
             em.flush();
             afterDelete(t);
 

@@ -12,4 +12,6 @@ public abstract class BaseDto<I extends Serializable> implements BaseDtoBasic {
     public abstract I getId();
 
     private LocalDateTime createdAt;
+
+    private Boolean active;
 }

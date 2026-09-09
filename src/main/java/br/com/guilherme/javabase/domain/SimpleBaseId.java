@@ -13,8 +13,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode (callSuper = true)
 public class SimpleBaseId extends SimpleAuditory<Long> {
     
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column (name = "id", nullable = false, updatable = false)
     private Long id;
+
+    @Column(name = "active", nullable = false)
+    private Boolean active = Boolean.TRUE;
 }

@@ -10,12 +10,16 @@ public interface BaseEntityInterface<I extends Serializable> extends Serializabl
     I getId();
 
     LocalDateTime getCreatedAt();
-    
+
     LocalDateTime getUpdatedAt();
 
     Long getCreatedBy();
 
     Long getUpdatedBy();
+
+    Boolean getActive();
+
+    void setActive(Boolean active);
 
     void auditInsert();
 

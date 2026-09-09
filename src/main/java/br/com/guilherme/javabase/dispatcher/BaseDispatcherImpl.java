@@ -82,6 +82,7 @@ public abstract class BaseDispatcherImpl<D extends BaseDto<I>, U extends BaseDto
     protected BooleanBuilder verifyCurrentFilter(final String search) {
         final BooleanBuilder predicate = new BooleanBuilder(currentFilter.get());
         predicate.and(predicateDefault);
+        predicate.and(BooleanBuilderParse.parse(entityPath, "active==true"));
         if(!StringUtils.isNullOrEmpty(search))
             predicate.and(BooleanBuilderParse.parse(entityPath, search));
         return predicate;

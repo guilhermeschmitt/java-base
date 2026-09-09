@@ -153,7 +153,7 @@ public class BooleanBuilderParse {
                 return listPath(newItem, (ListPath<?, ?>) xField);
             else if (xField instanceof SetPath && newItem != null)
                 return setPath(newItem, (SetPath<?, ?>) xField);
-            else if (xField instanceof SimpleExpression && newItem != null)
+            else if (xField instanceof SimpleExpression)
                 return processFilter((SimpleExpression<?>) xField, item.getOperation(), item.getValue());
             return null;
         } catch (final NoSuchFieldException e) {
@@ -189,7 +189,7 @@ public class BooleanBuilderParse {
                 return getGenericPredicate(newItem, (EntityPathBase<?>) xField);
             else if (xField instanceof ListPath && newItem != null)
                 return listPath(newItem, (ListPath<?, ?>) xField);
-            else if (xField instanceof SimpleExpression && newItem != null)
+            else if (xField instanceof SimpleExpression)
                 return processFilter((SimpleExpression<?>) xField, item.getOperation(), item.getValue());
             return null;
         } catch (final NoSuchFieldException e) {

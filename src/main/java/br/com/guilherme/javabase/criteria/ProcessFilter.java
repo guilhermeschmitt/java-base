@@ -293,11 +293,11 @@ public class ProcessFilter {
         Number value = null;
 
         if (expression.getType().getTypeName().equals(BigDecimal.class.getName()))
-            value = new BigDecimal(values.get(1));
+            value = new BigDecimal(values.get(i));
         else if (expression.getType().getTypeName().equals(Long.class.getName()))
-            value = Long.parseLong(values.get(1));
+            value = Long.parseLong(values.get(i));
         else if (expression.getType().getTypeName().equals(Integer.class.getName()))
-            value = Integer.parseInt(values.get(1));
+            value = Integer.parseInt(values.get(i));
 
         return value;
     }

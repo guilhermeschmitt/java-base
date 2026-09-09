@@ -17,6 +17,7 @@ public final class ConverterUtils {
             final BaseDto<I> dto, final E ent) {
         dto.setId(ent.getId());
         dto.setCreatedAt(ent.getCreatedAt());
+        dto.setActive(ent.getActive());
     }
 
     public static <I extends Serializable, E extends BaseEntityInterface<I>> void defaultSimplifiedValuesEntityToDto(
