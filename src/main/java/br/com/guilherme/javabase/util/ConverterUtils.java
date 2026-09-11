@@ -17,6 +17,7 @@ public final class ConverterUtils {
             final BaseDto<I> dto, final E ent) {
         dto.setId(ent.getId());
         dto.setCreatedAt(ent.getCreatedAt());
+        dto.setUpdatedAt(ent.getUpdatedAt());
         dto.setActive(ent.getActive());
     }
 

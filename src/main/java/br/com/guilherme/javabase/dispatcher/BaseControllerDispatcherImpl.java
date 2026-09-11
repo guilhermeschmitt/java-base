@@ -92,6 +92,9 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
         if (!getValidSelectedObject().test(ent))
             return ResponseUtil.noContent();
 
+        if (dto.getUpdatedAt() != null && ent.getUpdatedAt() != null && dto.getUpdatedAt().isBefore(ent.getUpdatedAt()))
+            throw new UpdateError(ErrorSeverity.ERROR, EnumErrorMessage.ERR_STALE_UPDATE);
+
         if (validator != null)
             validator.validateUpdate(dto);
 

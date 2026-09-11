@@ -36,7 +36,9 @@ public enum EnumErrorMessage {
     ERR_FIELD_NOT_FOUND("err.field.not.found"),
     ERR_INVALID_FILTER("err.invalid.filter"),
     ERR_FILTER_PROCESSING_FAILED("err.filter.processing.failed"),
-    ERR_PARAMETER_BLANK("err.parameter.blank");
+    ERR_PARAMETER_BLANK("err.parameter.blank"),
+    ERR_STALE_UPDATE("err.stale.update"),
+    ERR_CROSS_TENANT_ACCESS("err.cross.tenant.access");
 
     private static final String BUNDLE_BASE_NAME = "br.com.guilherme.javabase.exception.error-messages";
     private static final Control NO_JVM_DEFAULT_FALLBACK = Control.getNoFallbackControl(Control.FORMAT_PROPERTIES);

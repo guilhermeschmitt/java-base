@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 public final class SecurityUtils {
 
     private static volatile Supplier<Long> loggedUserIdSupplier = () -> null;
+    private static volatile Supplier<Long> loggedClientIdSupplier = () -> null;
 
     private SecurityUtils() {
     }
@@ -22,5 +23,19 @@ public final class SecurityUtils {
 
     public static Long getLoggedUserId() {
         return loggedUserIdSupplier.get();
+    }
+
+    /**
+     * Registrado pelo projeto consumidor da mesma forma que {@link #setLoggedUserIdSupplier}.
+     * Usado por {@code BaseServiceImpl} para bloquear CRUD entre clientes diferentes em
+     * entidades {@code ClientBaseId}: quando o supplier devolve {@code null} (nenhum contexto de
+     * cliente resolvido para a requisicao atual), nenhuma restricao e aplicada.
+     */
+    public static void setLoggedClientIdSupplier(final Supplier<Long> supplier) {
+        loggedClientIdSupplier = supplier != null ? supplier : () -> null;
+    }
+
+    public static Long getLoggedClientId() {
+        return loggedClientIdSupplier.get();
     }
 }
