@@ -51,6 +51,17 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!--
+            Hibernate ja vem transitivo via spring-boot-starter-data-jpa (e' o provider JPA
+            padrao do Spring Boot); declarado aqui explicitamente porque ClientBaseId/BaseServiceImpl
+            usam org.hibernate.Session e org.hibernate.annotations.* diretamente (filtro de
+            multi-tenant), nao so via API JPA generica.
+        -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

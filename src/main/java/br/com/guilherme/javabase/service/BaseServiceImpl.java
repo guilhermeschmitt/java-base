@@ -17,6 +17,7 @@ import org.springframework.util.Assert;
 import com.querydsl.core.types.Predicate;
 
 import br.com.guilherme.javabase.domain.BaseEntityInterface;
+import br.com.guilherme.javabase.domain.ClientBaseId;
 import br.com.guilherme.javabase.exception.BadRequestException;
 import br.com.guilherme.javabase.exception.EntityNotFound;
 import br.com.guilherme.javabase.exception.ErrorSeverity;
@@ -25,6 +26,7 @@ import br.com.guilherme.javabase.exception.ExceptionDatabaseImpl;
 import br.com.guilherme.javabase.exception.UnauthorizedException;
 import br.com.guilherme.javabase.repository.BaseRepository;
 import br.com.guilherme.javabase.util.GenericClassUtil;
+import br.com.guilherme.javabase.util.SecurityUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -54,7 +56,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return this.repository.findAllById(ids);
     }
 
-    @Override 
+    @Override
     public Optional<T> findById(final I id) {
         if(Objects.isNull(id))
             throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_INVALID_ID);
@@ -66,12 +68,12 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         }
     }
 
-    @Override 
+    @Override
     public Optional<T> findOneByPredicate(final Predicate predicate) {
         return repository.findOne(predicate);
     }
 
-    @Override 
+    @Override
     public T getOne(final I id) {
         return findById(id).orElseThrow(() -> notFoundById(id));
     }
@@ -91,7 +93,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return find.get();
     }
 
-    @Override 
+    @Override
     public Optional<T> findByIdReference(final I id) {
         if(id == null)
             throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_INVALID_ID);
@@ -111,15 +113,17 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return findByIdReference(id).orElseThrow(() -> notFoundById(id));
     }
 
-    @Override 
+    @Override
     public Page<T> findAllPredicate(final Pageable page, final Predicate predicate) {
-        if(predicate != null)
-            return repository.findAll(predicate, page);
-        return Page.empty();
+        if(predicate == null)
+            return Page.empty();
+        return repository.findAll(predicate, page);
     }
 
-    @Override 
+    @Override
     public T insert(final T t) {
+        verifyClientOwnership(t);
+
         try {
             final T x = repository.save(beforeSave(t));
             saveChildRecords(x);
@@ -136,10 +140,12 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return db;
     }
 
-    @Override 
+    @Override
     public T update(final T t) {
         if(!allowsEditing)
             throw new UnauthorizedException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_EDIT_NOT_ALLOWED_IN_CONTEXT);
+
+        verifyClientOwnership(t);
 
         try {
             final T ent = repository.save(beforeSave(t));
@@ -208,7 +214,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return repository.findAll();
     }
 
-    @Override 
+    @Override
     public List<T> findByPredicate(final Predicate predicate) {
         if(predicate == null)
             return new ArrayList<>();
@@ -220,7 +226,7 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
         return ent;
     }
 
-    @Override 
+    @Override
     public boolean existsById(final I id) {
         return repository.existsById(id);
     }
@@ -251,6 +257,24 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
 
     protected void beforeDelete(final T t) {
 
+    }
+
+    /**
+     * Bloqueia insert/update entre clientes diferentes. O filtro Hibernate
+     * {@value ClientBaseId#CLIENT_FILTER} (habilitado uma vez por requisicao por
+     * {@code ClientFilterInterceptor}, no java-base) so protege leituras (SELECT); ele nao
+     * impede que {@code ent} chegue aqui com um {@code clientId} de outro cliente (ex.: um valor
+     * adulterado no corpo da requisicao). Se {@code ent} for {@code ClientBaseId} e houver
+     * cliente resolvido para a requisicao atual, o {@code clientId} da entidade precisa bater
+     * com o do cliente logado.
+     */
+    protected void verifyClientOwnership(final T ent) {
+        if (!(ent instanceof final ClientBaseId clientEnt))
+            return;
+
+        final Long loggedClientId = SecurityUtils.getLoggedClientId();
+        if (loggedClientId != null && !loggedClientId.equals(clientEnt.getClientId()))
+            throw new UnauthorizedException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_CROSS_TENANT_ACCESS);
     }
 
     protected void afterDelete(final T t) {
