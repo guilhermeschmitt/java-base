@@ -19,6 +19,7 @@
         <spring-boot.version>4.1.1</spring-boot.version>
         <querydsl.version>5.1.0</querydsl.version>
         <rsql-parser.version>2.1.0</rsql-parser.version>
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
     <!--
@@ -71,6 +72,47 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
+        </dependency>
+
+        <!--
+            Autenticacao/autorizacao stateless via JWT (JwtService/JwtAuthenticationFilter/
+            SecurityAutoConfiguration): filtro, SecurityContextHolder, AuthenticationEntryPoint/
+            AccessDeniedHandler. O SecurityFilterChain (rotas publicas, CORS) continua sendo
+            declarado pelo projeto consumidor - so' as pecas genericas moram aqui.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            TokenBlocklistService/PasswordResetTokenService usam StringRedisTemplate puro (nao a
+            abstracao CacheManager) pra guardar estado de sessao (blocklist de access token,
+            allowlist de refresh token, token de reset de senha). Diferente do CacheManager
+            (CachingAutoConfiguration), aqui nao ha fallback em memoria - Redis e' uma dependencia
+            obrigatoria de qualquer consumidor que use a autenticacao JWT deste modulo.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <dependency>

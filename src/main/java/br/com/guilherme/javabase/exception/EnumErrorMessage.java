@@ -38,7 +38,10 @@ public enum EnumErrorMessage {
     ERR_FILTER_PROCESSING_FAILED("err.filter.processing.failed"),
     ERR_PARAMETER_BLANK("err.parameter.blank"),
     ERR_STALE_UPDATE("err.stale.update"),
-    ERR_CROSS_TENANT_ACCESS("err.cross.tenant.access");
+    ERR_CROSS_TENANT_ACCESS("err.cross.tenant.access"),
+    ERR_INVALID_CREDENTIALS("err.invalid.credentials"),
+    ERR_INVALID_OR_EXPIRED_TOKEN("err.invalid.or.expired.token"),
+    ERR_CURRENT_PASSWORD_INCORRECT("err.current.password.incorrect");
 
     private static final String BUNDLE_BASE_NAME = "br.com.guilherme.javabase.exception.error-messages";
     private static final Control NO_JVM_DEFAULT_FALLBACK = Control.getNoFallbackControl(Control.FORMAT_PROPERTIES);
