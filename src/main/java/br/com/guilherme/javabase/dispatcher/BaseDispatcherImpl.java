@@ -79,6 +79,10 @@ public abstract class BaseDispatcherImpl<D extends BaseDto<I>, U extends BaseDto
         paramsController = params;
     }
 
+    protected EntityPath<E> getEntityPath() {
+        return entityPath;
+    }
+
     protected BooleanBuilder verifyCurrentFilter(final String search) {
         final BooleanBuilder predicate = new BooleanBuilder(currentFilter.get());
         predicate.and(predicateDefault);

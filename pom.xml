@@ -52,6 +52,17 @@
         </dependency>
 
         <!--
+            Abstracao de cache do Spring (Cache/CacheManager), usada de forma programatica por
+            BaseControllerDispatcherImpl para cachear GET por id. O provider concreto (Redis,
+            ou o ConcurrentMapCacheManager em memoria como fallback) e escolhido pelo projeto
+            consumidor conforme o que estiver no classpath - java-base nao forca Redis.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!--
             Hibernate ja vem transitivo via spring-boot-starter-data-jpa (e' o provider JPA
             padrao do Spring Boot); declarado aqui explicitamente porque ClientBaseId/BaseServiceImpl
             usam org.hibernate.Session e org.hibernate.annotations.* diretamente (filtro de

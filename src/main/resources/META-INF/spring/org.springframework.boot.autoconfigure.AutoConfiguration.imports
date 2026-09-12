@@ -2,3 +2,4 @@ br.com.guilherme.javabase.config.JacksonAutoConfiguration
 br.com.guilherme.javabase.config.WebExceptionHandlingAutoConfiguration
 br.com.guilherme.javabase.config.ExceptionDatabaseAutoConfiguration
 br.com.guilherme.javabase.config.ClientFilterAutoConfiguration
+br.com.guilherme.javabase.config.CachingAutoConfiguration
