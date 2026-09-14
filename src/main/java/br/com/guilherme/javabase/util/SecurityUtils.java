@@ -13,6 +13,7 @@ public final class SecurityUtils {
 
     private static volatile Supplier<Long> loggedUserIdSupplier = () -> null;
     private static volatile Supplier<Long> loggedClientIdSupplier = () -> null;
+    private static volatile Supplier<String> loggedUserRoleSupplier = () -> null;
 
     private SecurityUtils() {
     }
@@ -37,5 +38,18 @@ public final class SecurityUtils {
 
     public static Long getLoggedClientId() {
         return loggedClientIdSupplier.get();
+    }
+
+    /**
+     * Registrado da mesma forma que os suppliers acima. Usado por {@code AccessGuard}
+     * (java-base) para checar a role do usuario logado nas rotas CRUD genericas de
+     * {@code BaseControllerImpl}.
+     */
+    public static void setLoggedUserRoleSupplier(final Supplier<String> supplier) {
+        loggedUserRoleSupplier = supplier != null ? supplier : () -> null;
+    }
+
+    public static String getLoggedUserRole() {
+        return loggedUserRoleSupplier.get();
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import tools.jackson.databind.ObjectMapper;
 
+import br.com.guilherme.javabase.security.AccessGuard;
 import br.com.guilherme.javabase.security.CurrentUserHolder;
 import br.com.guilherme.javabase.security.JwtAuthenticationFilter;
 import br.com.guilherme.javabase.security.JwtProperties;
@@ -19,6 +20,7 @@ import br.com.guilherme.javabase.security.JwtService;
 import br.com.guilherme.javabase.security.PasswordResetTokenService;
 import br.com.guilherme.javabase.security.RestAccessDeniedHandler;
 import br.com.guilherme.javabase.security.RestAuthenticationEntryPoint;
+import br.com.guilherme.javabase.security.RoleAccessGuard;
 import br.com.guilherme.javabase.security.TokenBlocklistService;
 import br.com.guilherme.javabase.util.SecurityUtils;
 import jakarta.annotation.PostConstruct;
@@ -46,6 +48,13 @@ public class SecurityAutoConfiguration {
     public void registerSecurityUtilsSuppliers() {
         SecurityUtils.setLoggedUserIdSupplier(CurrentUserHolder::getUserId);
         SecurityUtils.setLoggedClientIdSupplier(CurrentUserHolder::getClientId);
+        SecurityUtils.setLoggedUserRoleSupplier(CurrentUserHolder::getRole);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public AccessGuard accessGuard() {
+        return new RoleAccessGuard();
     }
 
     @Bean

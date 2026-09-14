@@ -1,8 +1,10 @@
 package br.com.guilherme.javabase.controller;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -29,6 +31,7 @@ import br.com.guilherme.javabase.dispatcher.BaseControllerDispatcherImpl;
 import br.com.guilherme.javabase.domain.BaseEntityInterface;
 import br.com.guilherme.javabase.dto.BaseDto;
 import br.com.guilherme.javabase.dto.BaseDtoBasic;
+import br.com.guilherme.javabase.security.AccessGuard;
 import br.com.guilherme.javabase.service.BaseService;
 import br.com.guilherme.javabase.util.HttpServletRequestUtils;
 import br.com.guilherme.javabase.util.ResponseUtil;
@@ -40,7 +43,9 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
         implements BaseController<D, U, P, I, B> {
 
     private @Autowired HttpServletRequest httpServletRequest;
+    private @Autowired AccessGuard accessGuard;
     private Set<ControllerMethodsCore> bloquedMethodsCore;
+    private Map<ControllerMethodsCore, Set<String>> allowedRolesCore;
 
     private final BaseControllerDispatcher<D, U, P, E, I, B> dispatcher;
 
@@ -64,6 +69,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
     public ResponseEntity<D> getObject(@PathVariable(name = "id", required = true) final I id) {
         if (getBloquedMethodsCore().contains(ControllerMethodsCore.GET))
             return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.GET);
         return getDispatcher().getObject(id);
     }
 
@@ -75,6 +81,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
             @RequestParam(value = "listaID", required = false) final List<I> listaID) {
         if (getBloquedMethodsCore().contains(ControllerMethodsCore.GETALL))
             return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.GETALL);
         return getDispatcher().getObjectList(page, search, listaID);
     }
 
@@ -85,6 +92,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
             @RequestParam(value = "responseID", required = false, defaultValue = "false") final Boolean responseID) {
         if (getBloquedMethodsCore().contains(ControllerMethodsCore.POST))
             return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.POST);
         return getDispatcher().postObject(dto, response, responseID);
     }
 
@@ -96,6 +104,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
             @RequestParam(value = "responseID", required = false, defaultValue = "false") final Boolean responseID) {
         if (getBloquedMethodsCore().contains(ControllerMethodsCore.UPDATE))
             return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.UPDATE);
         return getDispatcher().updateObject(id, dto, response, responseID);
     }
 
@@ -104,6 +113,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
     public ResponseEntity<Object> deleteObject(@PathVariable(name = "id", required = true) final I id) {
         if (getBloquedMethodsCore().contains(ControllerMethodsCore.DELETE))
             return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.DELETE);
         return getDispatcher().deleteObject(id);
     }
 
@@ -140,5 +150,34 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
         if (bloquedMethodsCore == null)
             bloquedMethodsCore = new HashSet<>();
         return bloquedMethodsCore;
+    }
+
+    /**
+     * Roles permitidas por operacao CRUD, no mesmo estilo de {@link #getBloquedMethodsCore()}:
+     * o controller concreto popula esse map no proprio construtor, ex.
+     * {@code getAllowedRolesCore().put(ControllerMethodsCore.DELETE, Set.of("ADMIN"))}.
+     * Uma operacao sem entrada aqui fica liberada pra qualquer usuario autenticado (mesmo
+     * comportamento de antes desta checagem existir) - so' restringe o que for explicitamente
+     * declarado.
+     */
+    public Map<ControllerMethodsCore, Set<String>> getAllowedRolesCore() {
+        if (allowedRolesCore == null)
+            allowedRolesCore = new HashMap<>();
+        return allowedRolesCore;
+    }
+
+    /**
+     * Identificador do recurso exposto por este controller, usado por implementacoes de
+     * {@link AccessGuard} mais granulares que role simples (ex.: permissao por pagina/acao).
+     * {@code null} por padrao - a implementacao padrao ({@code RoleAccessGuard}) ignora esse
+     * valor.
+     */
+    protected String getResourceCode() {
+        return null;
+    }
+
+    private void checkAccess(final ControllerMethodsCore method) {
+        accessGuard.checkAccess(getResourceCode(), method,
+                getAllowedRolesCore().getOrDefault(method, Set.of()));
     }
 }
