@@ -37,6 +37,7 @@ public enum EnumErrorMessage {
     ERR_INVALID_FILTER("err.invalid.filter"),
     ERR_FILTER_PROCESSING_FAILED("err.filter.processing.failed"),
     ERR_PARAMETER_BLANK("err.parameter.blank"),
+    ERR_INVALID_VALUE("err.invalid.value"),
     ERR_STALE_UPDATE("err.stale.update"),
     ERR_CROSS_TENANT_ACCESS("err.cross.tenant.access"),
     ERR_INVALID_CREDENTIALS("err.invalid.credentials"),
