@@ -86,7 +86,10 @@ public abstract class BaseDispatcherImpl<D extends BaseDto<I>, U extends BaseDto
     protected BooleanBuilder verifyCurrentFilter(final String search) {
         final BooleanBuilder predicate = new BooleanBuilder(currentFilter.get());
         predicate.and(predicateDefault);
-        predicate.and(BooleanBuilderParse.parse(entityPath, "active==true"));
+        // Registros inativos (delete logico) so' aparecem quando o proprio filtro pergunta por `active`
+        // (ex.: filtro "Situacao" da tela) - sem isso, `active==false` viraria `active==true and active==false`.
+        if (!BooleanBuilderParse.referencesField(search, "active"))
+            predicate.and(BooleanBuilderParse.parse(entityPath, "active==true"));
         if(!StringUtils.isNullOrEmpty(search))
             predicate.and(BooleanBuilderParse.parse(entityPath, search));
         return predicate;

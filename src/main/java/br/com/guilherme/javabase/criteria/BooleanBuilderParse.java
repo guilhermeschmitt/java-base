@@ -62,6 +62,27 @@ public class BooleanBuilderParse {
         return parser.parse(formatQuery(search));
     }
 
+    /**
+     * Se algum criterio do {@code search} usa exatamente o seletor {@code field} (sem nivel - ex.:
+     * {@code active}, nao {@code group.active}). Filtro vazio ou invalido devolve false (o invalido
+     * estoura depois, no {@link #parse}).
+     */
+    public static boolean referencesField(final String search, final String field) {
+        if (search == null || search.isEmpty())
+            return false;
+        try {
+            return referencesField(parseToNode(search), field);
+        } catch (final RSQLParserException e) {
+            return false;
+        }
+    }
+
+    private static boolean referencesField(final Node node, final String field) {
+        if (node instanceof LogicalNode logical)
+            return logical.getChildren().stream().anyMatch(child -> referencesField(child, field));
+        return node instanceof ComparisonNode comparison && field.equals(comparison.getSelector());
+    }
+
     private static String formatQuery(String query) {
         if (query == null)
             return null;

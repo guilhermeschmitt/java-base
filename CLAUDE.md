@@ -38,7 +38,7 @@ Generic type parameters follow this shape everywhere: `<D (full response dto), U
 
 ### Soft delete is baked into the base, not opt-in
 
-`SimpleBaseId` (the base `@MappedSuperclass` for `id`) carries an `active` boolean defaulting to `true`. `BaseServiceImpl.deleteById` never issues a hard delete — it sets `active = false` and saves. `BaseDispatcherImpl.verifyCurrentFilter` automatically ANDs `active==true` into every **list** query predicate, so soft-deleted rows silently disappear from `GET` list/search results. `GET /{id}` is **not** filtered this way — fetching a soft-deleted record by id still works. Any new entity inheriting `SimpleBaseId`/`ClientBaseId` gets this behavior automatically; there is nothing to configure.
+`SimpleBaseId` (the base `@MappedSuperclass` for `id`) carries an `active` boolean defaulting to `true`. `BaseServiceImpl.deleteById` never issues a hard delete — it sets `active = false` and saves. `BaseDispatcherImpl.verifyCurrentFilter` automatically ANDs `active==true` into every **list** query predicate, so soft-deleted rows silently disappear from `GET` list/search results — **unless** the `search` itself has a criterion on the top-level `active` selector (`BooleanBuilderParse.referencesField`), in which case that criterion wins (e.g. `active==false` lists only the inactive rows; this is what the front-end "Situation" filters send). `GET /{id}` is **not** filtered this way — fetching a soft-deleted record by id still works. Any new entity inheriting `SimpleBaseId`/`ClientBaseId` gets this behavior automatically; there is nothing to configure.
 
 ### Multi-tenant entities: `ClientBaseId`
 
