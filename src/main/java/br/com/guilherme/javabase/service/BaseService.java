@@ -38,6 +38,9 @@ public interface BaseService<T,I> {
 
     Optional<T> findOneByPredicate(final Predicate predicate);
 
+    /** Existe algum registro que satisfaz o predicado? (mesmo escopo das outras consultas: filtro de tenant, inativos inclusos). */
+    boolean existsByPredicate(Predicate predicate);
+
     T beforeSave(T ent);
 
     List<T> saveAndCommitParalelTransaction(Iterable<T> entities);

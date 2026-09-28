@@ -2,6 +2,7 @@ package br.com.guilherme.javabase.dispatcher;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -21,6 +22,7 @@ import br.com.guilherme.javabase.domain.BaseEntityInterface;
 import br.com.guilherme.javabase.domain.ClientBaseId;
 import br.com.guilherme.javabase.dto.BaseDto;
 import br.com.guilherme.javabase.dto.BaseDtoBasic;
+import br.com.guilherme.javabase.exception.BadRequestException;
 import br.com.guilherme.javabase.exception.EnumErrorMessage;
 import br.com.guilherme.javabase.exception.ErrorSeverity;
 import br.com.guilherme.javabase.exception.UpdateError;
@@ -148,6 +150,25 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
             event.get(DBEventType.AFTER_DELETE).apply(ent);
 
         return ResponseUtil.ok();
+    }
+
+    /**
+     * {@code GET <recurso>/unique}: {@code { "unique": true|false }} - se nenhum outro registro (inativos
+     * inclusos, mesmo filtro de tenant das outras consultas) tem {@code value} em {@code field}, dentro do
+     * escopo que {@code rules} declara pra esse campo. {@code id} exclui o proprio registro (edicao). Campo
+     * fora de {@code rules} = 400.
+     */
+    @Override
+    public ResponseEntity<Map<String, Boolean>> checkUnique(final Map<String, Map<String, String>> rules,
+            final String field, final String value, final I id, final Map<String, String> params) {
+        final Map<String, String> scope = rules.get(field);
+        if (scope == null)
+            throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_INVALID_VALUE, "field");
+        if (value.isBlank())
+            throw new BadRequestException(ErrorSeverity.ERROR, EnumErrorMessage.ERR_PARAMETER_BLANK, "value");
+
+        final boolean taken = service.existsByPredicate(UniqueQuery.build(getEntityPath(), field, value, scope, params, id));
+        return ResponseEntity.ok(Map.of("unique", !taken));
     }
 
     protected Optional<E> processPost(final P dto) {

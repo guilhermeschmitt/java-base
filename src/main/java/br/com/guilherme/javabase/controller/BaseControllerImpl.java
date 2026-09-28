@@ -46,6 +46,7 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
     private @Autowired AccessGuard accessGuard;
     private Set<ControllerMethodsCore> bloquedMethodsCore;
     private Map<ControllerMethodsCore, Set<String>> allowedRolesCore;
+    private Map<String, Map<String, String>> uniqueRules;
 
     private final BaseControllerDispatcher<D, U, P, E, I, B> dispatcher;
 
@@ -62,6 +63,39 @@ public abstract class BaseControllerImpl<D extends BaseDto<I>, U extends BaseDto
 
     public BaseControllerImpl(final BaseControllerDispatcherImpl<D, U, P, E, I, B> dispatcher) {
         this.dispatcher = dispatcher;
+    }
+
+    /**
+     * {@code GET <recurso>/unique?field=<campo>&value=<valor>[&id=<id>][&<escopo>=<valor>...]}: responde
+     * {@code { "unique": true|false }} - se nenhum outro registro (inativos inclusos, mesmo filtro de tenant
+     * das outras consultas) tem esse valor no campo, dentro do escopo. {@code id} exclui o proprio registro
+     * (edicao). So' os campos declarados em {@link #getUniqueRules()} podem ser consultados (lista branca);
+     * sem nenhum declarado o endpoint responde 501, como um metodo bloqueado. Mesmo controle de acesso
+     * do GET ALL. E' uma checagem de conveniencia pro formulario: o save continua validando por conta propria.
+     */
+    @GetMapping(path = "/unique")
+    public ResponseEntity<Map<String, Boolean>> checkUnique(@RequestParam(value = "field") final String field,
+            @RequestParam(value = "value") final String value,
+            @RequestParam(value = "id", required = false) final I id,
+            @RequestParam final Map<String, String> params) {
+        if (getUniqueRules().isEmpty())
+            return ResponseUtil.notImplemented();
+        checkAccess(ControllerMethodsCore.GETALL);
+        return getDispatcher().checkUnique(getUniqueRules(), field, value, id, params);
+    }
+
+    /**
+     * Lista branca do {@code GET /unique}: campo da entidade -> escopo ({@code parametro da query ->
+     * caminho na entidade}). O controller concreto popula no construtor, no mesmo estilo de
+     * {@link #getAllowedRolesCore()}, ex.:
+     * {@code getUniqueRules().put("documentNumber", Map.of("typeService", "typeService.id"))} = documento
+     * unico por tipo de servico ({@code ?field=documentNumber&value=X&typeService=3}). Escopo vazio
+     * ({@code Map.of()}) = unico no client inteiro. Todo parametro do escopo e' obrigatorio na consulta.
+     */
+    public Map<String, Map<String, String>> getUniqueRules() {
+        if (uniqueRules == null)
+            uniqueRules = new HashMap<>();
+        return uniqueRules;
     }
 
     @Override

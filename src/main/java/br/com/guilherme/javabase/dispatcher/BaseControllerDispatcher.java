@@ -2,6 +2,7 @@ package br.com.guilherme.javabase.dispatcher;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,5 +26,8 @@ public interface BaseControllerDispatcher<D extends BaseDto<I>, U extends BaseDt
     ResponseEntity<D> updateObject(I id, U dto, Boolean response, Boolean responseID);
 
     ResponseEntity<Object> deleteObject(I id);
+
+    ResponseEntity<Map<String, Boolean>> checkUnique(Map<String, Map<String, String>> rules, String field,
+            String value, I id, Map<String, String> params);
 
 }

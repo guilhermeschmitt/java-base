@@ -227,6 +227,11 @@ public abstract class BaseServiceImpl<T extends BaseEntityInterface<I>, I extend
     }
 
     @Override
+    public boolean existsByPredicate(final Predicate predicate) {
+        return repository.exists(predicate);
+    }
+
+    @Override
     public boolean existsById(final I id) {
         return repository.existsById(id);
     }
