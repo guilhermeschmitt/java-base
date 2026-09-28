@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
 /**
  * Handler global registrado automaticamente (ver {@code WebExceptionHandlingAutoConfiguration})
@@ -33,6 +35,16 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
         return ResponseEntity.status(status)
                 .body(ErrorResponse.of(status.value(), status.getReasonPhrase(), message, request.getRequestURI()));
+    }
+
+    /**
+     * Resposta assincrona (ex.: Server-Sent Events) cujo cliente ja' foi embora, ou que estourou o tempo:
+     * nao ha' pra quem mandar corpo - e o Content-Type ja' fixado ({@code text/event-stream}) nem aceitaria
+     * o {@link ErrorResponse} em JSON do handler generico.
+     */
+    @ExceptionHandler({ AsyncRequestNotUsableException.class, AsyncRequestTimeoutException.class })
+    public ResponseEntity<Void> handleAsyncRequestGone(Exception ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
     }
 
     @ExceptionHandler(Exception.class)
