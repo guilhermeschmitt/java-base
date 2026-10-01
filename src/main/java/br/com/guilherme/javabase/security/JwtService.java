@@ -3,6 +3,7 @@ package br.com.guilherme.javabase.security;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -37,11 +38,23 @@ public class JwtService {
     }
 
     public GeneratedToken generateAccessToken(final Long userId, final Long clientId, final String role) {
+        return generateAccessToken(userId, clientId, role, Map.of());
+    }
+
+    /**
+     * Mesmo access token, com claims extras do projeto consumidor (ex.: os produtos que o usuario acessa, no
+     * java-test). Nao sobrescrevem as do proprio token (sub/jti/clientId/role/iat/exp) - essas sao aplicadas
+     * depois. Ficam no payload, que qualquer um le (base64): nada sigiloso aqui, e o tamanho do token cresce com
+     * elas.
+     */
+    public GeneratedToken generateAccessToken(final Long userId, final Long clientId, final String role,
+            final Map<String, ?> extraClaims) {
         final Instant now = Instant.now();
         final Instant expiresAt = now.plus(properties.getAccessTokenTtl());
         final String jti = UUID.randomUUID().toString();
 
         final String token = Jwts.builder()
+                .claims(extraClaims == null ? Map.of() : extraClaims)
                 .id(jti)
                 .subject(String.valueOf(userId))
                 .claim(CLAIM_CLIENT_ID, clientId)
