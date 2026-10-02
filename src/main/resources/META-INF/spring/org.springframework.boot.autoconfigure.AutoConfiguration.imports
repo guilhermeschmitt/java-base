@@ -4,3 +4,4 @@ br.com.guilherme.javabase.config.ExceptionDatabaseAutoConfiguration
 br.com.guilherme.javabase.config.ClientFilterAutoConfiguration
 br.com.guilherme.javabase.config.CachingAutoConfiguration
 br.com.guilherme.javabase.config.SecurityAutoConfiguration
+br.com.guilherme.javabase.config.FileStorageAutoConfiguration

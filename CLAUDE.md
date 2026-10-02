@@ -62,6 +62,17 @@ Domain-level exceptions extend `BusinessException` (`BadRequestException`, `Conf
 
 `EnumErrorMessage` resolves messages from `error-messages.properties` (English, default) using the current request's `Locale` via `LocaleContextHolder`. A `pt_BR` translation already exists (`error-messages_pt_BR.properties`); add further locales the same way. Deliberately uses `ResourceBundle.Control.getNoFallbackControl` so an unmapped locale falls back to the bundle's own default (English) rather than the JVM's default locale — otherwise a JVM running with a pt_BR system locale would silently return Portuguese messages to every request regardless of the request's actual `Accept-Language`.
 
+### File storage (`storage/`)
+
+Uploaded files (java-flow service attachments, java-front-desk panel media) go through `FileStorage`. The database of the consumer keeps only the metadata and the key returned by `store`.
+
+- `store(prefix, stream, maxBytes)` streams the content (never fully in memory) under the key `<prefix>/<uuid>`. Empty, or over `maxBytes`, is a 400 and nothing is kept.
+- `load(key)` returns a `Resource` to stream in the response; `delete(key)` does not fail if the file is already gone.
+- `LocalFileStorage` writes to a directory and moves a `.part` file into place only when complete. The original name never becomes a path.
+- `FileStorageAutoConfiguration` creates it when the consumer sets `app.storage.dir` (in docker, a volume owned by the app user). Without the property there is no storage bean; a consumer's own `FileStorage` bean (e.g. S3/MinIO) takes precedence.
+- `FileTypes.detect(bufferedStream, allowed)` detects the type from the first bytes (PDF, PNG, JPEG, GIF, WebP, MP4, WebM) without consuming the stream. Each consumer passes the types it accepts; the browser's Content-Type is never trusted.
+- Consumers delete stored files after commit (and the new file on rollback). That is their transaction logic, not the storage's.
+
 ### Adding a new entity in a consumer project
 
 Extend `SimpleBaseId` (or `ClientBaseId` for tenant-scoped data) for the entity, then create the DTOs, repository, `XServiceImpl`, `XConverter`, optional `XDtoValidator`, and `XController` following the generic type parameter order above. New/changed tables always go through a new Flyway migration in the consumer project — this library has no schema management of its own.
