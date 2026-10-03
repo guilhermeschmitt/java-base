@@ -7,10 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Handler global registrado automaticamente (ver {@code WebExceptionHandlingAutoConfiguration})
@@ -33,6 +35,20 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining("; "));
+        return ResponseEntity.status(status)
+                .body(ErrorResponse.of(status.value(), status.getReasonPhrase(), message, request.getRequestURI()));
+    }
+
+    /**
+     * Parametro de URL/query que nao converte pro tipo do metodo (ex.: valor fora de um enum, texto num id) ou
+     * obrigatorio ausente: erro de quem chamou, nao 500.
+     */
+    @ExceptionHandler({ MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class })
+    public ResponseEntity<ErrorResponse> handleBadParameter(Exception ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String message = ex instanceof MethodArgumentTypeMismatchException mismatch
+                ? "Invalid value for parameter '" + mismatch.getName() + "'"
+                : ex.getMessage();
         return ResponseEntity.status(status)
                 .body(ErrorResponse.of(status.value(), status.getReasonPhrase(), message, request.getRequestURI()));
     }
