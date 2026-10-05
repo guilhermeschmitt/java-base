@@ -11,6 +11,10 @@ public class UnauthorizedException extends DomainException {
         super(severity, errorMessage);
     }
 
+    public UnauthorizedException(final ErrorSeverity severity, final EnumErrorMessage errorMessage, final String detail) {
+        super(severity, errorMessage, errorMessage.getMessage() + ": " + detail);
+    }
+
     @Override
     public int httpStatus() {
         return HttpStatus.FORBIDDEN.value();

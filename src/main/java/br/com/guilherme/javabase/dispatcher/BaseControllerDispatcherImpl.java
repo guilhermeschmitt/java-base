@@ -35,6 +35,8 @@ import br.com.guilherme.javabase.validator.DtoValidator;
 public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDto<I>, P extends BaseDtoBasic, E extends BaseEntityInterface<I>, I extends Serializable, B extends BaseDto<I>>
         extends BaseDispatcherImpl<D, U, P, E, I, B> implements BaseControllerDispatcher<D, U, P, E, I, B> {
 
+    private boolean cacheDisabled;
+
     public BaseControllerDispatcherImpl(final BaseService<E, I> bsService,
             final BaseConverterDto<D, U, P, E, I, B> baseConverterDto, final EntityPath<E> entityPath) {
         this(bsService, baseConverterDto, entityPath, null);
@@ -193,9 +195,16 @@ public class BaseControllerDispatcherImpl<D extends BaseDto<I>, U extends BaseDt
      * <p>Um cache hit em {@code getObject} devolve a resposta direto, sem passar por
      * {@code getValidSelectedObject()} - nenhum controller usa esse hook hoje, mas se algum vier
      * a usar pra restringir visibilidade alem do isolamento por cliente, precisa ser levado em
-     * conta aqui tambem.
+     * conta aqui tambem. Um controller cuja resposta depende de quem pede desliga o cache com {@link #disableCache()}.
      */
+    @Override
+    public void disableCache() {
+        cacheDisabled = true;
+    }
+
     private Cache getCache() {
+        if (cacheDisabled)
+            return null;
         final CacheManager cacheManager = CacheHolder.getCacheManager();
         return cacheManager != null ? cacheManager.getCache(getEntityPath().getType().getSimpleName()) : null;
     }

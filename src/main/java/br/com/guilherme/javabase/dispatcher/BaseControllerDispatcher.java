@@ -30,4 +30,11 @@ public interface BaseControllerDispatcher<D extends BaseDto<I>, U extends BaseDt
     ResponseEntity<Map<String, Boolean>> checkUnique(Map<String, Map<String, String>> rules, String field,
             String value, I id, Map<String, String> params);
 
+    /**
+     * Desliga o cache de GET por id deste recurso - pra quando a resposta depende de quem pede (ex. um
+     * {@code canEdit} calculado pro usuario logado, ou visibilidade por pessoa alem do cliente): um cache hit
+     * devolveria o DTO montado pra outra pessoa, sem passar pelo service.
+     */
+    void disableCache();
+
 }
