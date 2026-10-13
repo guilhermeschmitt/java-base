@@ -70,7 +70,7 @@ Uploaded files (java-flow service attachments, java-front-desk panel media) go t
 - `load(key)` returns a `Resource` to stream in the response; `delete(key)` does not fail if the file is already gone.
 - `LocalFileStorage` writes to a directory and moves a `.part` file into place only when complete. The original name never becomes a path.
 - `FileStorageAutoConfiguration` creates it when the consumer sets `app.storage.dir` (in docker, a volume owned by the app user). Without the property there is no storage bean; a consumer's own `FileStorage` bean (e.g. S3/MinIO) takes precedence.
-- `FileTypes.detect(bufferedStream, allowed)` detects the type from the first bytes (PDF, PNG, JPEG, GIF, WebP, MP4, WebM) without consuming the stream. Each consumer passes the types it accepts; the browser's Content-Type is never trusted.
+- `FileTypes.detect(bufferedStream, allowed)` detects the type from the first bytes (PDF, PNG, JPEG, GIF, WebP, MP4, WebM, and the Office DOCX/XLSX/PPTX - a ZIP whose entries live under `word/`, `xl/` or `ppt/`, read from the first 64KB only when an Office type is allowed) without consuming the stream. Each consumer passes the types it accepts; the browser's Content-Type is never trusted. `FileTypes.cleanName(raw, contentType)` gives the name to show/download: no path or control chars, at most 255 chars, and an extension that matches the detected type (added when missing).
 - Consumers delete stored files after commit (and the new file on rollback). That is their transaction logic, not the storage's.
 
 ### Adding a new entity in a consumer project
