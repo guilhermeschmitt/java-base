@@ -77,7 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String role = jwtService.getRole(claims);
         final Instant expiresAt = claims.getExpiration().toInstant();
 
-        CurrentUserHolder.set(new CurrentUserHolder.Context(userId, clientId, role, jti, expiresAt));
+        CurrentUserHolder.set(new CurrentUserHolder.Context(userId, clientId, role, jti, expiresAt,
+                jwtService.getDepartmentId(claims), jwtService.getManagedDepartmentIds(claims)));
 
         final Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null,
                 List.of(new SimpleGrantedAuthority("ROLE_" + role)));

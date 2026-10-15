@@ -2,7 +2,9 @@ package br.com.guilherme.javabase.security;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +30,9 @@ public class JwtService {
 
     private static final String CLAIM_CLIENT_ID = "clientId";
     private static final String CLAIM_ROLE = "role";
+    // Opcionais, emitidos pelo java-test (extraClaims): departamento da pessoa e os que ela gere.
+    private static final String CLAIM_DEPARTMENT_ID = "departmentId";
+    private static final String CLAIM_MANAGED_DEPARTMENTS = "managedDepartments";
 
     private final SecretKey key;
     private final JwtProperties properties;
@@ -105,6 +110,20 @@ public class JwtService {
 
     public String getRole(final Claims claims) {
         return claims.get(CLAIM_ROLE, String.class);
+    }
+
+    /** Claim opcional {@code departmentId} (departamento da pessoa), null quando nao vem. */
+    public Long getDepartmentId(final Claims claims) {
+        final Object value = claims.get(CLAIM_DEPARTMENT_ID);
+        return value instanceof final Number number ? number.longValue() : null;
+    }
+
+    /** Claim opcional {@code managedDepartments} (ids dos departamentos que a pessoa gere), vazio quando nao vem. */
+    public List<Long> getManagedDepartmentIds(final Claims claims) {
+        final Object value = claims.get(CLAIM_MANAGED_DEPARTMENTS);
+        if (!(value instanceof final Collection<?> ids))
+            return List.of();
+        return ids.stream().filter(Number.class::isInstance).map(id -> ((Number) id).longValue()).toList();
     }
 
     public record GeneratedToken(String token, String jti, Instant expiresAt) {

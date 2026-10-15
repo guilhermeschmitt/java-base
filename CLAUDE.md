@@ -62,6 +62,10 @@ Domain-level exceptions extend `BusinessException` (`BadRequestException`, `Conf
 
 `EnumErrorMessage` resolves messages from `error-messages.properties` (English, default) using the current request's `Locale` via `LocaleContextHolder`. A `pt_BR` translation already exists (`error-messages_pt_BR.properties`); add further locales the same way. Deliberately uses `ResourceBundle.Control.getNoFallbackControl` so an unmapped locale falls back to the bundle's own default (English) rather than the JVM's default locale — otherwise a JVM running with a pt_BR system locale would silently return Portuguese messages to every request regardless of the request's actual `Accept-Language`.
 
+### Department scope (`security/DepartmentScope`)
+
+`JwtAuthenticationFilter` also reads the optional claims `departmentId` and `managedDepartments` (emitted by java-test) into `CurrentUserHolder` (`getDepartmentId()`, `getManagedDepartmentIds()`). `DepartmentScope` answers the manager questions every service asks: `managesAll()` (role `CLIENT_ADMIN`), `isManager()` (all or at least one department), `manages(departmentId)`, `managesAny(ids)`, `managedDepartmentIds()`. Who belongs to which department each service knows from its own user replica. Values last until the next token refresh.
+
 ### File storage (`storage/`)
 
 Uploaded files (java-flow service attachments, java-front-desk panel media) go through `FileStorage`. The database of the consumer keeps only the metadata and the key returned by `store`.

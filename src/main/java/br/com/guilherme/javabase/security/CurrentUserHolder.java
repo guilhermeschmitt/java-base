@@ -1,6 +1,7 @@
 package br.com.guilherme.javabase.security;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Guarda os dados do usuario autenticado na requisicao HTTP atual, extraidos do access token e
@@ -46,13 +47,27 @@ public final class CurrentUserHolder {
         return context != null ? context.role() : null;
     }
 
+    public static Long getDepartmentId() {
+        final Context context = CURRENT.get();
+        return context != null ? context.departmentId() : null;
+    }
+
+    public static List<Long> getManagedDepartmentIds() {
+        final Context context = CURRENT.get();
+        return context != null && context.managedDepartmentIds() != null ? context.managedDepartmentIds() : List.of();
+    }
+
     /**
      * @param jti       id do access token (JWT) atual - usado no logout pra saber o que colocar
      *                  na blocklist.
      * @param expiresAt validade do access token atual - usado pra calcular o TTL da entrada na
      *                  blocklist (nao faz sentido bloquear alem do tempo que ele ja expiraria
      *                  sozinho).
+     * @param departmentId         departamento da pessoa (claim opcional), null sem ele.
+     * @param managedDepartmentIds departamentos que a pessoa gere (claim opcional), vazio sem ele - ver
+     *                             {@link DepartmentScope}.
      */
-    public record Context(Long userId, Long clientId, String role, String jti, Instant expiresAt) {
+    public record Context(Long userId, Long clientId, String role, String jti, Instant expiresAt, Long departmentId,
+            List<Long> managedDepartmentIds) {
     }
 }
